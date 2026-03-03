@@ -22,3 +22,28 @@ export async function fetchJSON<T>(url: string, options: RequestInit): Promise<T
   }
   return body as T;
 }
+
+interface RetryOptions {
+  maxRetries?: number;
+  backoffMs?: number;
+}
+
+export async function fetchWithRetry<T>(
+  url: string,
+  options: RequestInit,
+  { maxRetries = 2, backoffMs = 1000 }: RetryOptions = {},
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchJSON<T>(url, options);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (err instanceof ApiError && err.status && err.status < 500) throw err;
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
