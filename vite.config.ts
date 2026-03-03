@@ -17,9 +17,13 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/tempo-api/, ''),
       },
       '/jira-api': {
-        target: 'https://jiraisa.atlassian.net',
+        target: 'https://placeholder.atlassian.net',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/jira-api/, ''),
+        router: (req) => {
+          const domain = req.headers['x-jira-domain'] as string | undefined;
+          return domain ? `https://${domain}` : 'https://placeholder.atlassian.net';
+        },
       },
     },
   },

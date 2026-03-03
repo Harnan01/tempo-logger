@@ -1,0 +1,58 @@
+.entryCard {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.entryCard:hover {
+  border-color: var(--color-border-hover);
+}
+
+.entryCard:focus-within {
+  border-color: #f59e0b33;
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.entryTicket {
+  background: #f59e0b15;
+  border: 1px solid #f59e0b44;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.entryTime {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-success);
+  margin-left: auto;
+}
+
+.entryDate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+
+.entryGrid {
+  display: grid;
+  grid-template-columns: 1fr 120px 140px;
+  gap: 10px;
+}
+
+.entryField input,
+.entryField textarea {
+  margin-bottom: 0;
+}
