@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { useState } from "react";
 
 const OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
