@@ -1,9 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { Toaster, toast } from 'sonner';
 import '@/styles/global.css';
 import type { InputMode, ParsedCommit } from '@/types';
 import { useCredentials } from '@/hooks/useCredentials';
 import { useEntries } from '@/hooks/useEntries';
 import { useWorkflow } from '@/hooks/useWorkflow';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Step1Config } from '@/components/steps/Step1Config';
 import { Step2Input } from '@/components/steps/Step2Input';
@@ -43,6 +45,19 @@ export default function App() {
 
   const today = getTodayISO();
   const canProceedStep2 = commitLog.trim() && (inputMode === 'daily' || (startDate && endDate));
+
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: 'Escape',
+        handler: () => {
+          if (step > 1 && !loading) goTo((step - 1) as 1 | 2 | 3);
+        },
+      },
+    ],
+    [step, loading, goTo],
+  );
+  useKeyboardShortcuts(shortcuts);
 
   const handlePreviewParse = useCallback((log: string) => {
     setCommitLog(log);
@@ -114,6 +129,14 @@ export default function App() {
     setSubmitResults(results);
     goTo(4);
     stopLoading();
+
+    const successes = results.filter((r) => r.ok).length;
+    const failures = results.length - successes;
+    if (failures === 0) {
+      toast.success(`All ${successes} worklogs submitted successfully!`);
+    } else {
+      toast.warning(`${successes} submitted, ${failures} failed`);
+    }
   };
 
   const handleReset = () => {
@@ -128,6 +151,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <Toaster theme="dark" position="bottom-right" richColors />
       <AppLayout currentStep={step}>
         {error && (
           <div className={boxStyles.errorBox}>

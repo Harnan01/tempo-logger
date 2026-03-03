@@ -69,3 +69,10 @@ textarea {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app {
+    padding: 0 0 40px;
+  }
+}

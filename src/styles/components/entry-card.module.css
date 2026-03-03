@@ -56,3 +56,13 @@
 .entryField textarea {
   margin-bottom: 0;
 }
+
+@media (max-width: 768px) {
+  .entryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .entryHeader {
+    flex-wrap: wrap;
+  }
+}

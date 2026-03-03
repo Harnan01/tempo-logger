@@ -36,3 +36,13 @@
   align-items: center;
   margin-top: 8px;
 }
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}
