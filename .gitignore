@@ -8,3 +8,4 @@ dist-types/
 .DS_Store
 .vscode/
 !.vscode/settings.json
+CLAUDE.md
