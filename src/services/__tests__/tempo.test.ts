@@ -24,10 +24,7 @@ describe('submitWorklog', () => {
   it('handles API error response', async () => {
     server.use(
       http.post('/tempo-api/4/worklogs', () => {
-        return HttpResponse.json(
-          { errors: [{ message: 'Invalid issue' }] },
-          { status: 400 },
-        );
+        return HttpResponse.json({ errors: [{ message: 'Invalid issue' }] }, { status: 400 });
       }),
     );
 

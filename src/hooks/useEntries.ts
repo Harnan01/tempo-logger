@@ -23,10 +23,7 @@ export function useEntries() {
 
   const uniqueDays = useMemo(() => new Set(entries.map((e) => e.startDate)).size, [entries]);
 
-  const successCount = useMemo(
-    () => submitResults.filter((r) => r.ok).length,
-    [submitResults],
-  );
+  const successCount = useMemo(() => submitResults.filter((r) => r.ok).length, [submitResults]);
 
   return {
     entries,
