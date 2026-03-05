@@ -1,104 +1,142 @@
+import { Row, Col, Input } from 'antd';
 import type { Credentials } from '@/types';
-import cardStyles from '@/styles/components/card.module.css';
-import formStyles from '@/styles/components/form.module.css';
-import btnStyles from '@/styles/components/button.module.css';
-import boxStyles from '@/styles/components/boxes.module.css';
+import type { FieldErrors } from '@/utils/validators';
+import { Card, FormField, NoteBox, Button, StepActions } from '@/components/shared';
 
 interface Step1Props {
   credentials: Credentials;
   updateField: <K extends keyof Credentials>(field: K, value: string) => void;
+  touchField: (field: keyof Credentials) => void;
+  clearCredentials: () => void;
   isComplete: boolean;
+  fieldErrors: FieldErrors;
   onContinue: () => void;
 }
 
-export function Step1Config({ credentials, updateField, isComplete, onContinue }: Step1Props) {
+export function Step1Config({
+  credentials,
+  updateField,
+  touchField,
+  clearCredentials,
+  isComplete,
+  fieldErrors,
+  onContinue,
+}: Step1Props) {
   return (
-    <>
-      <div className={cardStyles.card}>
-        <div className={cardStyles.cardTitle}>API Credentials</div>
-        <div className={formStyles.field}>
-          <label className={formStyles.label}>OPENROUTER API KEY</label>
-          <input
-            type="password"
-            placeholder="sk-or-v1-..."
-            value={credentials.openrouterKey}
-            onChange={(e) => updateField('openrouterKey', e.target.value)}
-          />
-          <div className={formStyles.hint}>→ openrouter.ai/keys → Create Key</div>
-        </div>
-        <div className={formStyles.field}>
-          <label className={formStyles.label}>TEMPO API TOKEN</label>
-          <input
-            type="password"
-            placeholder="your-tempo-token"
-            value={credentials.tempoToken}
-            onChange={(e) => updateField('tempoToken', e.target.value)}
-          />
-          <div className={formStyles.hint}>→ Tempo → Settings → API Integration → New Token</div>
-        </div>
-        <div className={formStyles.field}>
-          <label className={formStyles.label}>JIRA ACCOUNT ID</label>
-          <input
-            type="text"
-            placeholder="5b10a2844c20165700ede21g"
-            value={credentials.accountId}
-            onChange={(e) => updateField('accountId', e.target.value)}
-          />
-          <div className={formStyles.hint}>
-            → Jira profile URL → accountId in the URL, or ask admin
-          </div>
-        </div>
-        <div className={formStyles.field}>
-          <label className={formStyles.label}>JIRA DOMAIN</label>
-          <input
-            type="text"
-            placeholder="yourcompany.atlassian.net"
-            value={credentials.jiraDomain}
-            onChange={(e) => updateField('jiraDomain', e.target.value)}
-          />
-          <div className={formStyles.hint}>
-            → Just the domain, no https:// e.g. myteam.atlassian.net
-          </div>
-        </div>
-        <div className={formStyles.row}>
-          <div className={formStyles.field} style={{ margin: 0 }}>
-            <label className={formStyles.label}>JIRA EMAIL</label>
-            <input
-              type="text"
-              placeholder="you@company.com"
-              value={credentials.jiraEmail}
-              onChange={(e) => updateField('jiraEmail', e.target.value)}
-            />
-          </div>
-          <div className={formStyles.field} style={{ margin: 0 }}>
-            <label className={formStyles.label}>JIRA API TOKEN</label>
-            <input
-              type="password"
-              placeholder="your-jira-api-token"
-              value={credentials.jiraToken}
-              onChange={(e) => updateField('jiraToken', e.target.value)}
-            />
-            <div className={formStyles.hint}>
-              → id.atlassian.com → Security → API tokens
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={boxStyles.noteBox}>
-        ℹ All credentials stay in your browser only. Nothing is stored or sent anywhere except
-        directly to OpenRouter, Jira, and Tempo APIs.
-      </div>
-
-      <div className={formStyles.actions}>
-        <button
-          className={`${btnStyles.btn} ${btnStyles.primary}`}
-          disabled={!isComplete}
-          onClick={onContinue}
+    <div>
+      <Card title="API Credentials">
+        <FormField
+          label="OPENROUTER API KEY"
+          hint="openrouter.ai/keys -> Create Key"
+          error={fieldErrors.openrouterKey}
         >
-          Continue →
-        </button>
-      </div>
-    </>
+          {({ id }) => (
+            <Input.Password
+              id={id}
+              placeholder="sk-or-v1-..."
+              value={credentials.openrouterKey}
+              onChange={(e) => updateField('openrouterKey', e.target.value)}
+              onBlur={() => touchField('openrouterKey')}
+            />
+          )}
+        </FormField>
+
+        <FormField
+          label="TEMPO API TOKEN"
+          hint="Tempo -> Settings -> API Integration -> New Token"
+          error={fieldErrors.tempoToken}
+        >
+          {({ id }) => (
+            <Input.Password
+              id={id}
+              placeholder="your-tempo-token"
+              value={credentials.tempoToken}
+              onChange={(e) => updateField('tempoToken', e.target.value)}
+              onBlur={() => touchField('tempoToken')}
+            />
+          )}
+        </FormField>
+
+        <FormField
+          label="JIRA ACCOUNT ID"
+          hint="Jira profile URL -> accountId in the URL"
+          error={fieldErrors.accountId}
+        >
+          {({ id }) => (
+            <Input
+              id={id}
+              placeholder="5b10a2844c20165700ede21g"
+              value={credentials.accountId}
+              onChange={(e) => updateField('accountId', e.target.value)}
+              onBlur={() => touchField('accountId')}
+            />
+          )}
+        </FormField>
+
+        <FormField
+          label="JIRA DOMAIN"
+          hint="Just the domain, no https:// e.g. myteam.atlassian.net"
+          error={fieldErrors.jiraDomain}
+        >
+          {({ id }) => (
+            <Input
+              id={id}
+              placeholder="yourcompany.atlassian.net"
+              value={credentials.jiraDomain}
+              onChange={(e) => updateField('jiraDomain', e.target.value)}
+              onBlur={() => touchField('jiraDomain')}
+            />
+          )}
+        </FormField>
+
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <FormField label="JIRA EMAIL" error={fieldErrors.jiraEmail} noMargin>
+              {({ id }) => (
+                <Input
+                  id={id}
+                  placeholder="you@company.com"
+                  value={credentials.jiraEmail}
+                  onChange={(e) => updateField('jiraEmail', e.target.value)}
+                  onBlur={() => touchField('jiraEmail')}
+                />
+              )}
+            </FormField>
+          </Col>
+          <Col xs={24} md={12}>
+            <FormField
+              label="JIRA API TOKEN"
+              hint="id.atlassian.com -> Security -> API tokens"
+              error={fieldErrors.jiraToken}
+              noMargin
+            >
+              {({ id }) => (
+                <Input.Password
+                  id={id}
+                  placeholder="your-jira-api-token"
+                  value={credentials.jiraToken}
+                  onChange={(e) => updateField('jiraToken', e.target.value)}
+                  onBlur={() => touchField('jiraToken')}
+                />
+              )}
+            </FormField>
+          </Col>
+        </Row>
+      </Card>
+
+      <NoteBox>
+        Credentials are saved in your browser's localStorage and auto-filled on next visit. Nothing
+        is sent anywhere except directly to OpenRouter, Jira, and Tempo APIs.
+      </NoteBox>
+
+      <StepActions>
+        <Button variant="ghost" onClick={clearCredentials}>
+          Clear Saved
+        </Button>
+        <Button variant="primary" disabled={!isComplete} onClick={onContinue}>
+          Continue
+        </Button>
+      </StepActions>
+    </div>
   );
 }

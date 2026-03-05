@@ -1,10 +1,17 @@
+import { Row, Col, Input, Tag, Typography, Flex, Card as AntCard, theme } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import type { WorklogEntry } from '@/types';
-import { secToHuman } from '@/utils/formatTime';
-import summaryStyles from '@/styles/components/summary.module.css';
-import boxStyles from '@/styles/components/boxes.module.css';
-import entryStyles from '@/styles/components/entry-card.module.css';
-import formStyles from '@/styles/components/form.module.css';
-import btnStyles from '@/styles/components/button.module.css';
+import { secToHuman, calcEndTime } from '@/utils/formatTime';
+import {
+  StatCard,
+  NoteBox,
+  Button,
+  FormField,
+  DurationInput,
+  StepActions,
+} from '@/components/shared';
+
+const { Text } = Typography;
 
 interface Step3Props {
   entries: WorklogEntry[];
@@ -29,110 +36,149 @@ export function Step3Review({
   onSubmit,
   onBack,
 }: Step3Props) {
+  const { token } = theme.useToken();
+
   return (
-    <>
-      <div className={summaryStyles.summaryGrid}>
-        <div className={summaryStyles.stat}>
-          <div className={summaryStyles.val}>{entries.length}</div>
-          <div className={summaryStyles.key}>WORKLOG ENTRIES</div>
-        </div>
-        <div className={summaryStyles.stat}>
-          <div className={summaryStyles.val}>{totalHours.toFixed(1)}h</div>
-          <div className={summaryStyles.key}>TOTAL TIME</div>
-        </div>
-        <div className={summaryStyles.stat}>
-          <div className={summaryStyles.val}>{uniqueDays}d</div>
-          <div className={summaryStyles.key}>DAYS COVERED</div>
-        </div>
-      </div>
+    <div>
+      <Row gutter={12} style={{ marginBottom: 16 }}>
+        <Col xs={24} md={8}>
+          <StatCard value={entries.length} label="WORKLOG ENTRIES" />
+        </Col>
+        <Col xs={24} md={8}>
+          <StatCard value={`${totalHours.toFixed(1)}h`} label="TOTAL TIME" />
+        </Col>
+        <Col xs={24} md={8}>
+          <StatCard value={`${uniqueDays}d`} label="DAYS COVERED" />
+        </Col>
+      </Row>
 
-      <div className={boxStyles.noteBox}>
-        ℹ Review and edit entries below before submitting. Adjust descriptions, times, and dates as
+      <NoteBox>
+        Review and edit entries below before submitting. Adjust descriptions, times, and dates as
         needed.
-      </div>
+      </NoteBox>
 
-      {entries.map((entry) => (
-        <div key={entry.id} className={entryStyles.entryCard}>
-          <div className={entryStyles.entryHeader}>
-            <span className={entryStyles.entryTicket}>{entry.issueKey}</span>
-            <span className={entryStyles.entryDate}>
-              {entry.startDate} · {entry.startTime}
-            </span>
-            <span className={entryStyles.entryTime}>
-              {secToHuman(Number(entry.timeSpentSeconds))}
-            </span>
-            <button
-              className={`${btnStyles.btn} ${btnStyles.danger}`}
-              style={{ padding: '4px 10px', fontSize: 11 }}
-              onClick={() => removeEntry(entry.id)}
-              aria-label={`Remove ${entry.issueKey}`}
-            >
-              ✕
-            </button>
-          </div>
-          <div className={entryStyles.entryGrid}>
-            <div className={entryStyles.entryField}>
-              <label className={formStyles.label}>DESCRIPTION</label>
-              <textarea
-                value={entry.description}
-                onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
-                style={{ minHeight: 64, fontSize: 12 }}
+      {entries.map((entry, index) => (
+        <AntCard
+          key={entry.id}
+          size="small"
+          style={{
+            marginBottom: 14,
+            background: token.colorBgElevated,
+            animationDelay: `${index * 50}ms`,
+          }}
+          className="staggerIn"
+          title={
+            <Flex align="center" gap={12} wrap="wrap">
+              <Tag
+                color="orange"
+                style={{
+                  fontFamily: token.fontFamilyCode,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  padding: '2px 10px',
+                }}
+              >
+                {entry.issueKey}
+              </Tag>
+              <Text type="secondary" style={{ fontSize: 11, fontFamily: token.fontFamilyCode }}>
+                {entry.startDate} · {entry.startTime.slice(0, 5)} –{' '}
+                {calcEndTime(entry.startTime, Number(entry.timeSpentSeconds))}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: token.fontFamilyCode,
+                  fontSize: 12,
+                  color: token.colorSuccess,
+                  marginLeft: 'auto',
+                }}
+              >
+                {secToHuman(Number(entry.timeSpentSeconds))}
+              </Text>
+              <Button
+                variant="danger"
+                size="small"
+                onClick={() => removeEntry(entry.id)}
+                aria-label={`Remove ${entry.issueKey}`}
+              >
+                <DeleteOutlined />
+              </Button>
+            </Flex>
+          }
+        >
+          <Row gutter={12}>
+            <Col xs={24} lg={12}>
+              <FormField label="DESCRIPTION" noMargin>
+                {({ id }) => (
+                  <Input.TextArea
+                    id={id}
+                    value={entry.description}
+                    onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
+                    autoSize={{ minRows: 3 }}
+                    style={{ fontSize: 12 }}
+                  />
+                )}
+              </FormField>
+            </Col>
+            <Col xs={12} lg={5}>
+              <FormField label="DATE" noMargin>
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    type="date"
+                    value={entry.startDate}
+                    onChange={(e) => updateEntry(entry.id, 'startDate', e.target.value)}
+                  />
+                )}
+              </FormField>
+              <div style={{ marginTop: 8 }}>
+                <FormField label="START TIME" noMargin>
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={entry.startTime}
+                      placeholder="09:00:00"
+                      onChange={(e) => updateEntry(entry.id, 'startTime', e.target.value)}
+                    />
+                  )}
+                </FormField>
+              </div>
+            </Col>
+            <Col xs={12} lg={7}>
+              <DurationInput
+                totalSeconds={Number(entry.timeSpentSeconds)}
+                onChange={(secs) => updateEntry(entry.id, 'timeSpentSeconds', secs)}
               />
-            </div>
-            <div>
-              <div className={entryStyles.entryField}>
-                <label className={formStyles.label}>DATE</label>
-                <input
-                  type="date"
-                  value={entry.startDate}
-                  onChange={(e) => updateEntry(entry.id, 'startDate', e.target.value)}
-                />
-              </div>
-              <div className={entryStyles.entryField} style={{ marginTop: 8 }}>
-                <label className={formStyles.label}>START TIME</label>
-                <input
-                  type="text"
-                  value={entry.startTime}
-                  placeholder="09:00:00"
-                  onChange={(e) => updateEntry(entry.id, 'startTime', e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className={formStyles.label}>TIME SPENT (seconds)</label>
-              <input
-                type="number"
-                value={entry.timeSpentSeconds}
-                step={900}
-                min={900}
-                onChange={(e) => updateEntry(entry.id, 'timeSpentSeconds', e.target.value)}
-              />
-              <div className={formStyles.hint} style={{ marginTop: 6 }}>
-                = {secToHuman(Number(entry.timeSpentSeconds))}
-              </div>
-            </div>
-          </div>
-        </div>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  marginTop: 6,
+                  display: 'block',
+                  fontFamily: token.fontFamilyCode,
+                }}
+              >
+                = {secToHuman(Number(entry.timeSpentSeconds))} (ends{' '}
+                {calcEndTime(entry.startTime, Number(entry.timeSpentSeconds))})
+              </Text>
+            </Col>
+          </Row>
+        </AntCard>
       ))}
 
-      <div className={formStyles.actions} style={{ marginTop: 20 }}>
-        <button className={`${btnStyles.btn} ${btnStyles.ghost}`} onClick={onBack}>
-          ← Regenerate
-        </button>
-        <button
-          className={`${btnStyles.btn} ${btnStyles.success}`}
-          disabled={entries.length === 0 || loading}
+      <StepActions>
+        <Button variant="ghost" onClick={onBack}>
+          Regenerate
+        </Button>
+        <Button
+          variant="success"
+          disabled={entries.length === 0}
+          loading={loading}
+          loadingText={loadingMsg}
           onClick={onSubmit}
         >
-          {loading ? (
-            <>
-              <span className="spinner" style={{ borderTopColor: '#fff' }} /> {loadingMsg}
-            </>
-          ) : (
-            <>⚡ Log {entries.length} entries to Tempo</>
-          )}
-        </button>
-      </div>
-    </>
+          Log {entries.length} entries to Tempo
+        </Button>
+      </StepActions>
+    </div>
   );
 }

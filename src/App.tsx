@@ -1,27 +1,64 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Toaster, toast } from 'sonner';
+import { ConfigProvider, App as AntApp } from 'antd';
 import '@/styles/global.css';
-import type { InputMode, ParsedCommit } from '@/types';
+import type { InputMode, ParsedCommit, DayConfig } from '@/types';
+import type { StepNumber } from '@/hooks/useWorkflow';
 import { useCredentials } from '@/hooks/useCredentials';
 import { useEntries } from '@/hooks/useEntries';
 import { useWorkflow } from '@/hooks/useWorkflow';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useTheme } from '@/hooks/useTheme';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Step1Config } from '@/components/steps/Step1Config';
 import { Step2Input } from '@/components/steps/Step2Input';
 import { Step3Review } from '@/components/steps/Step3Review';
 import { Step4Results } from '@/components/steps/Step4Results';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { NoteBox } from '@/components/shared';
 import { generateWorklogs } from '@/services/openrouter';
 import { resolveIssueIds } from '@/services/jira';
 import { submitWorklog } from '@/services/tempo';
-import { parseCommits, groupByTicket } from '@/utils/parseCommits';
+import { parseCommits, groupByTicket, condenseGitLog } from '@/utils/parseCommits';
 import { buildDailyPrompt, buildGitCommitPrompt } from '@/utils/prompts';
 import { getTodayISO } from '@/utils/formatTime';
-import boxStyles from '@/styles/components/boxes.module.css';
+
+export function createDefaultDay(date: string): DayConfig {
+  return {
+    date,
+    startTime: '09:00',
+    endTime: '18:00',
+    lunchStart: '12:30',
+    lunchEnd: '13:30',
+    dsmStart: '09:30',
+    dsmEnd: '09:45',
+    dsmTicket: '',
+    workLog: '',
+  };
+}
 
 export default function App() {
-  const { credentials, updateField, isComplete } = useCredentials();
+  const { mode, toggleTheme, themeConfig } = useTheme();
+
+  return (
+    <ConfigProvider theme={themeConfig}>
+      <AntApp>
+        <ErrorBoundary>
+          <AppInner themeMode={mode} onThemeToggle={toggleTheme} />
+        </ErrorBoundary>
+      </AntApp>
+    </ConfigProvider>
+  );
+}
+
+interface AppInnerProps {
+  themeMode: 'dark' | 'light';
+  onThemeToggle: () => void;
+}
+
+function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
+  const { message } = AntApp.useApp();
+  const { credentials, updateField, touchField, clearCredentials, isComplete, fieldErrors } =
+    useCredentials();
   const {
     entries,
     setEntries,
@@ -34,17 +71,21 @@ export default function App() {
     successCount,
   } = useEntries();
   const { step, goTo, loading, loadingMsg, startLoading, stopLoading, error, setErrorMsg } =
-    useWorkflow();
+    useWorkflow(isComplete ? 2 : 1);
 
   const [commitLog, setCommitLog] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [dayConfigs, setDayConfigs] = useState<DayConfig[]>([createDefaultDay('')]);
   const [inputMode, setInputMode] = useState<InputMode>('daily');
+  const [additionalContext, setAdditionalContext] = useState('');
   const [parsedPreview, setParsedPreview] = useState<ParsedCommit[]>([]);
 
   const today = getTodayISO();
-  const canProceedStep2 = commitLog.trim() && (inputMode === 'daily' || (startDate && endDate));
+  const allDaysHaveDates = dayConfigs.every((d) => d.date.trim() !== '');
+  const canProceedStep2 =
+    allDaysHaveDates &&
+    (inputMode === 'daily'
+      ? dayConfigs.every((d) => d.workLog.trim().length > 0)
+      : commitLog.trim().length > 0);
 
   const shortcuts = useMemo(
     () => [
@@ -69,20 +110,17 @@ export default function App() {
     try {
       let prompt: string;
       if (inputMode === 'daily') {
-        prompt = buildDailyPrompt(commitLog);
+        prompt = buildDailyPrompt(dayConfigs, additionalContext);
       } else {
+        const condensed = condenseGitLog(commitLog);
         const commits = parseCommits(commitLog);
-        if (commits.length === 0) {
-          setErrorMsg(
-            'No Jira ticket IDs found. Ensure your commits contain patterns like PROJ-123 or ABC-456.',
-          );
-          return;
-        }
-        const groups = groupByTicket(commits);
+        const ticketCount = Object.keys(groupByTicket(commits)).length;
         startLoading(
-          `Found ${Object.keys(groups).length} tickets. Asking AI to generate worklogs...`,
+          ticketCount > 0
+            ? `Found ${ticketCount} tickets. Analyzing git log and generating worklogs...`
+            : 'Analyzing git log — AI will extract ticket IDs from commits and diffs...',
         );
-        prompt = buildGitCommitPrompt(groups, startDate, endDate, hoursPerDay);
+        prompt = buildGitCommitPrompt(condensed, dayConfigs, additionalContext);
       }
       const result = await generateWorklogs(credentials.openrouterKey, prompt);
       setEntries(result);
@@ -133,9 +171,9 @@ export default function App() {
     const successes = results.filter((r) => r.ok).length;
     const failures = results.length - successes;
     if (failures === 0) {
-      toast.success(`All ${successes} worklogs submitted successfully!`);
+      message.success(`All ${successes} worklogs submitted successfully!`);
     } else {
-      toast.warning(`${successes} submitted, ${failures} failed`);
+      message.warning(`${successes} submitted, ${failures} failed`);
     }
   };
 
@@ -144,26 +182,38 @@ export default function App() {
     setEntries([]);
     setCommitLog('');
     setSubmitResults([]);
-    setStartDate('');
-    setEndDate('');
+    setDayConfigs([createDefaultDay('')]);
+    setAdditionalContext('');
     setParsedPreview([]);
   };
 
+  const handleStepClick = useCallback(
+    (targetStep: StepNumber) => {
+      if (targetStep < step && !loading) {
+        goTo(targetStep);
+      }
+    },
+    [step, loading, goTo],
+  );
+
   return (
-    <ErrorBoundary>
-      <Toaster theme="dark" position="bottom-right" richColors />
-      <AppLayout currentStep={step}>
-        {error && (
-          <div className={boxStyles.errorBox}>
-            <span>⚠</span> {error}
-          </div>
-        )}
+    <>
+      <AppLayout
+        currentStep={step}
+        onStepClick={handleStepClick}
+        themeMode={themeMode}
+        onThemeToggle={onThemeToggle}
+      >
+        {error && <NoteBox variant="error">{error}</NoteBox>}
 
         {step === 1 && (
           <Step1Config
             credentials={credentials}
             updateField={updateField}
+            touchField={touchField}
+            clearCredentials={clearCredentials}
             isComplete={isComplete}
+            fieldErrors={fieldErrors}
             onContinue={() => goTo(2)}
           />
         )}
@@ -171,21 +221,18 @@ export default function App() {
         {step === 2 && (
           <Step2Input
             commitLog={commitLog}
-            onCommitLogChange={setCommitLog}
             inputMode={inputMode}
             onInputModeChange={setInputMode}
-            startDate={startDate}
-            endDate={endDate}
-            hoursPerDay={hoursPerDay}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onHoursPerDayChange={setHoursPerDay}
+            dayConfigs={dayConfigs}
+            onDayConfigsChange={setDayConfigs}
+            additionalContext={additionalContext}
+            onAdditionalContextChange={setAdditionalContext}
             today={today}
             loading={loading}
             loadingMsg={loadingMsg}
             onGenerate={handleGenerate}
             onBack={() => goTo(1)}
-            canProceed={!!canProceedStep2}
+            canProceed={canProceedStep2}
             parsedPreview={parsedPreview}
             onPreviewParse={handlePreviewParse}
           />
@@ -218,6 +265,6 @@ export default function App() {
           />
         )}
       </AppLayout>
-    </ErrorBoundary>
+    </>
   );
 }

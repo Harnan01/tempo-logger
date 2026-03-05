@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 
 export type StepNumber = 1 | 2 | 3 | 4;
 
-export function useWorkflow() {
-  const [step, setStep] = useState<StepNumber>(1);
+export function useWorkflow(initialStep: StepNumber = 1) {
+  const [step, setStep] = useState<StepNumber>(initialStep);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
   const [error, setError] = useState('');

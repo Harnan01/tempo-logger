@@ -20,3 +20,15 @@ export interface ParsedCommit {
 }
 
 export type InputMode = 'daily' | 'git';
+
+export interface DayConfig {
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:MM (e.g. "09:00")
+  endTime: string; // HH:MM (e.g. "18:00")
+  lunchStart: string; // HH:MM (e.g. "12:30")
+  lunchEnd: string; // HH:MM (e.g. "13:30")
+  dsmStart: string; // HH:MM (e.g. "09:30")
+  dsmEnd: string; // HH:MM (e.g. "09:45")
+  dsmTicket: string; // Jira ticket ID (e.g. "CREW-100")
+  workLog: string; // Per-day work log (used in daily mode)
+}

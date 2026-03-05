@@ -18,7 +18,7 @@ export async function generateWorklogs(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1000,
+      max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
