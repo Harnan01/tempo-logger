@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/jira-api/:path*", "destination": "/api/jira-proxy/:path*" },
+    { "source": "/tempo-api/:path*", "destination": "/api/tempo-proxy/:path*" }
+  ]
+}
