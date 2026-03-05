@@ -32,6 +32,7 @@ export function createDefaultDay(date: string): DayConfig {
     dsmStart: '09:30',
     dsmEnd: '09:45',
     dsmTicket: '',
+    meetings: [],
     workLog: '',
   };
 }

@@ -1,5 +1,5 @@
 import { Segmented, Input, Tag, Typography, theme } from 'antd';
-import type { InputMode, ParsedCommit, DayConfig } from '@/types';
+import type { InputMode, ParsedCommit, DayConfig, Meeting } from '@/types';
 import { parseCommits, groupByTicket } from '@/utils/parseCommits';
 import { createDefaultDay } from '@/App';
 import { Card, NoteBox, Button, FormField, StepActions } from '@/components/shared';
@@ -49,6 +49,11 @@ export function Step2Input({
     onDayConfigsChange(updated);
   };
 
+  const updateDayMeetings = (index: number, meetings: Meeting[]) => {
+    const updated = dayConfigs.map((d, i) => (i === index ? { ...d, meetings } : d));
+    onDayConfigsChange(updated);
+  };
+
   const addDay = () => {
     onDayConfigsChange([...dayConfigs, createDefaultDay('')]);
   };
@@ -90,6 +95,7 @@ export function Step2Input({
             today={today}
             canRemove={dayConfigs.length > 1}
             onUpdate={(field, value) => updateDay(i, field, value)}
+            onMeetingsChange={(meetings) => updateDayMeetings(i, meetings)}
             onRemove={() => removeDay(i)}
           />
         ))}

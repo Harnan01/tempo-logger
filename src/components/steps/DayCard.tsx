@@ -1,5 +1,5 @@
 import { Row, Col, Input, Card as AntCard, Flex, theme } from 'antd';
-import type { InputMode, DayConfig } from '@/types';
+import type { InputMode, DayConfig, Meeting } from '@/types';
 import { FormField, Button } from '@/components/shared';
 
 interface DayCardProps {
@@ -9,6 +9,7 @@ interface DayCardProps {
   today: string;
   canRemove: boolean;
   onUpdate: (field: keyof DayConfig, value: string) => void;
+  onMeetingsChange: (meetings: Meeting[]) => void;
   onRemove: () => void;
 }
 
@@ -19,9 +20,28 @@ export function DayCard({
   today,
   canRemove,
   onUpdate,
+  onMeetingsChange,
   onRemove,
 }: DayCardProps) {
   const { token } = theme.useToken();
+
+  const addMeeting = () => {
+    onMeetingsChange([
+      ...day.meetings,
+      { description: '', startTime: '', endTime: '', jiraId: '' },
+    ]);
+  };
+
+  const updateMeeting = (mIdx: number, field: keyof Meeting, value: string) => {
+    const updated = day.meetings.map((m, i) =>
+      i === mIdx ? { ...m, [field]: field === 'jiraId' ? value.toUpperCase() : value } : m,
+    );
+    onMeetingsChange(updated);
+  };
+
+  const removeMeeting = (mIdx: number) => {
+    onMeetingsChange(day.meetings.filter((_, i) => i !== mIdx));
+  };
 
   return (
     <AntCard
@@ -154,6 +174,109 @@ export function DayCard({
           </FormField>
         </Col>
       </Row>
+
+      {/* Meetings / Ceremonies */}
+      <div
+        style={{
+          margin: '14px 0 10px',
+          fontSize: 11,
+          fontWeight: 600,
+          color: token.colorTextSecondary,
+          letterSpacing: 0.5,
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
+          paddingTop: 12,
+        }}
+      >
+        MEETINGS / CEREMONIES (Optional)
+      </div>
+
+      {day.meetings.map((m, mIdx) => (
+        <div
+          key={mIdx}
+          style={{
+            background: token.colorBgContainer,
+            border: `1px solid ${token.colorBorderSecondary}`,
+            borderRadius: token.borderRadiusLG,
+            padding: '10px 12px',
+            marginBottom: 8,
+          }}
+        >
+          <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: token.colorTextSecondary,
+                letterSpacing: 0.5,
+              }}
+            >
+              MEETING {mIdx + 1}
+            </span>
+            <Button
+              variant="danger"
+              size="small"
+              onClick={() => removeMeeting(mIdx)}
+              aria-label={`Remove meeting ${mIdx + 1}`}
+            >
+              Remove
+            </Button>
+          </Flex>
+          <Row gutter={12}>
+            <Col xs={24} md={8}>
+              <FormField label="DESCRIPTION" noMargin>
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    placeholder="Sprint planning"
+                    value={m.description}
+                    onChange={(e) => updateMeeting(mIdx, 'description', e.target.value)}
+                  />
+                )}
+              </FormField>
+            </Col>
+            <Col xs={12} md={5}>
+              <FormField label="START TIME" noMargin>
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    type="time"
+                    value={m.startTime}
+                    onChange={(e) => updateMeeting(mIdx, 'startTime', e.target.value)}
+                  />
+                )}
+              </FormField>
+            </Col>
+            <Col xs={12} md={5}>
+              <FormField label="END TIME" noMargin>
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    type="time"
+                    value={m.endTime}
+                    onChange={(e) => updateMeeting(mIdx, 'endTime', e.target.value)}
+                  />
+                )}
+              </FormField>
+            </Col>
+            <Col xs={24} md={6}>
+              <FormField label="JIRA ID" noMargin>
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    placeholder="CREW-252"
+                    value={m.jiraId}
+                    onChange={(e) => updateMeeting(mIdx, 'jiraId', e.target.value)}
+                  />
+                )}
+              </FormField>
+            </Col>
+          </Row>
+        </div>
+      ))}
+
+      <Button variant="ghost" size="small" onClick={addMeeting} style={{ marginBottom: 4 }}>
+        + Add Meeting
+      </Button>
 
       {inputMode === 'daily' && (
         <div style={{ marginTop: 12 }}>

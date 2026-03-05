@@ -27,7 +27,7 @@ interface TimeWindow {
 
 /**
  * Computes available time windows for work blocks in a day,
- * excluding lunch and DSM (which is a fixed block).
+ * excluding lunch, DSM, and any user-added meetings (which are fixed blocks).
  */
 function computeAvailableWindows(d: DayConfig): TimeWindow[] {
   // Collect blocked periods sorted by start
@@ -37,6 +37,13 @@ function computeAvailableWindows(d: DayConfig): TimeWindow[] {
 
   if (d.dsmTicket.trim()) {
     blocked.push({ start: timeToMinutes(d.dsmStart), end: timeToMinutes(d.dsmEnd) });
+  }
+
+  // Block time for each meeting
+  for (const m of d.meetings) {
+    if (m.startTime && m.endTime && m.jiraId.trim()) {
+      blocked.push({ start: timeToMinutes(m.startTime), end: timeToMinutes(m.endTime) });
+    }
   }
 
   blocked.sort((a, b) => a.start - b.start);
@@ -92,7 +99,16 @@ function buildScheduleSection(dayConfigs: DayConfig[]): string {
 
     const hasDsm = d.dsmTicket.trim() !== '';
     const dsmMins = hasDsm ? timeToMinutes(d.dsmEnd) - timeToMinutes(d.dsmStart) : 0;
-    const workBlockMins = totalMins - dsmMins;
+
+    // Calculate total meeting minutes
+    const meetingMins = d.meetings.reduce((sum, m) => {
+      if (m.startTime && m.endTime && m.jiraId.trim()) {
+        return sum + (timeToMinutes(m.endTime) - timeToMinutes(m.startTime));
+      }
+      return sum;
+    }, 0);
+
+    const workBlockMins = totalMins - dsmMins - meetingMins;
 
     let dayBlock = `
 Day ${i + 1}: ${d.date}
@@ -102,6 +118,15 @@ Day ${i + 1}: ${d.date}
     if (hasDsm) {
       dayBlock += `
   FIXED — Daily standup: ${d.dsmStart} to ${d.dsmEnd} → ticket ${d.dsmTicket} (${formatDuration(dsmMins)} block, MUST appear at this exact time)`;
+    }
+
+    // Add fixed meeting entries
+    for (const m of d.meetings) {
+      if (m.startTime && m.endTime && m.jiraId.trim()) {
+        const mMins = timeToMinutes(m.endTime) - timeToMinutes(m.startTime);
+        dayBlock += `
+  FIXED — ${m.description || 'Meeting'}: ${m.startTime} to ${m.endTime} → ticket ${m.jiraId} (${formatDuration(mMins)} block, MUST appear at this exact time)`;
+      }
     }
 
     dayBlock += `
@@ -122,8 +147,11 @@ Day ${i + 1}: ${d.date}
 
     dayBlock += `
   Day total: ${formatDuration(totalMins)} = ${totalSecs} seconds`;
-    if (hasDsm) {
-      dayBlock += ` (${formatDuration(dsmMins)} DSM + ${formatDuration(workBlockMins)} work blocks)`;
+    if (hasDsm || meetingMins > 0) {
+      const fixedParts: string[] = [];
+      if (hasDsm) fixedParts.push(`${formatDuration(dsmMins)} DSM`);
+      if (meetingMins > 0) fixedParts.push(`${formatDuration(meetingMins)} meetings`);
+      dayBlock += ` (${fixedParts.join(' + ')} + ${formatDuration(workBlockMins)} work blocks)`;
     }
 
     lines.push(dayBlock);
