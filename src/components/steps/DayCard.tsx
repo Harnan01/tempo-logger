@@ -112,8 +112,9 @@ export function DayCard({
         </Col>
       </Row>
 
+      {/* Lunch + DSM times — 4 equal columns, enough room for the native time picker */}
       <Row gutter={12} style={{ marginTop: 12 }}>
-        <Col xs={12} md={5}>
+        <Col xs={12} md={6}>
           <FormField label="LUNCH START" noMargin>
             {({ id }) => (
               <Input
@@ -125,7 +126,7 @@ export function DayCard({
             )}
           </FormField>
         </Col>
-        <Col xs={12} md={5}>
+        <Col xs={12} md={6}>
           <FormField label="LUNCH END" noMargin>
             {({ id }) => (
               <Input
@@ -137,7 +138,7 @@ export function DayCard({
             )}
           </FormField>
         </Col>
-        <Col xs={12} md={5}>
+        <Col xs={12} md={6}>
           <FormField label="DSM START" noMargin>
             {({ id }) => (
               <Input
@@ -149,7 +150,7 @@ export function DayCard({
             )}
           </FormField>
         </Col>
-        <Col xs={12} md={5}>
+        <Col xs={12} md={6}>
           <FormField label="DSM END" noMargin>
             {({ id }) => (
               <Input
@@ -161,7 +162,11 @@ export function DayCard({
             )}
           </FormField>
         </Col>
-        <Col xs={24} md={4}>
+      </Row>
+
+      {/* DSM Ticket on its own row — needs enough width for IDs like CREW-1234 */}
+      <Row gutter={12} style={{ marginTop: 12 }}>
+        <Col xs={24} md={10}>
           <FormField label="DSM TICKET" noMargin>
             {({ id }) => (
               <Input

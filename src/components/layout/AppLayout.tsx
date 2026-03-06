@@ -40,7 +40,7 @@ export function AppLayout({
         breakpoint="lg"
         collapsedWidth={0}
         trigger={null}
-        width={260}
+        width={220}
         style={{
           overflow: 'auto',
           height: '100vh',
@@ -158,7 +158,7 @@ export function AppLayout({
 
       <Layout
         style={{
-          marginLeft: collapsed ? 0 : 260,
+          marginLeft: collapsed ? 0 : 220,
           transition: 'margin-left 0.2s',
         }}
       >
