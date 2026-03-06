@@ -1,6 +1,9 @@
-import { Segmented, Input, Tag, Typography, theme } from 'antd';
+import { useState } from 'react';
+import { Segmented, Input, Tag, Typography, theme, Modal, App as AntApp } from 'antd';
+import { CopyOutlined, RobotOutlined } from '@ant-design/icons';
 import type { InputMode, ParsedCommit, DayConfig, Meeting } from '@/types';
 import { parseCommits, groupByTicket } from '@/utils/parseCommits';
+import { buildExternalAiPrompt } from '@/utils/prompts';
 import { createDefaultDay } from '@/App';
 import { Card, NoteBox, Button, FormField, StepActions } from '@/components/shared';
 import { DayCard } from './DayCard';
@@ -43,6 +46,16 @@ export function Step2Input({
   onPreviewParse,
 }: Step2Props) {
   const { token } = theme.useToken();
+  const { message } = AntApp.useApp();
+  const [promptModalOpen, setPromptModalOpen] = useState(false);
+
+  const externalPrompt = inputMode === 'daily' ? buildExternalAiPrompt(dayConfigs) : '';
+
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(externalPrompt).then(() => {
+      message.success('Prompt copied to clipboard');
+    });
+  };
 
   const updateDay = (index: number, field: keyof DayConfig, value: string) => {
     const updated = dayConfigs.map((d, i) => (i === index ? { ...d, [field]: value } : d));
@@ -85,7 +98,16 @@ export function Step2Input({
       </Card>
 
       {/* Day Schedule Cards */}
-      <Card title="Day Schedule">
+      <Card
+        title="Day Schedule"
+        extra={
+          inputMode === 'daily' && (
+            <Button variant="ghost" size="small" onClick={() => setPromptModalOpen(true)}>
+              <RobotOutlined /> Get AI Prompt
+            </Button>
+          )
+        }
+      >
         {dayConfigs.map((day, i) => (
           <DayCard
             key={i}
@@ -186,6 +208,36 @@ export function Step2Input({
           )}
         </FormField>
       </Card>
+
+      {/* External AI Prompt Modal */}
+      <Modal
+        open={promptModalOpen}
+        onCancel={() => setPromptModalOpen(false)}
+        footer={null}
+        width={700}
+        title={
+          <span style={{ fontWeight: 600 }}>
+            <RobotOutlined style={{ marginRight: 8, color: token.colorPrimary }} />
+            AI Prompt — Copy &amp; paste into Claude / ChatGPT / Gemini
+          </span>
+        }
+      >
+        <p style={{ fontSize: 13, color: token.colorTextSecondary, marginBottom: 12 }}>
+          Copy this prompt, paste it into any AI tool, fill in what you worked on where indicated,
+          then paste the AI response back into the <strong>Work Log</strong> field in each day card.
+        </p>
+        <Input.TextArea
+          value={externalPrompt}
+          readOnly
+          autoSize={{ minRows: 14, maxRows: 22 }}
+          style={{ fontFamily: token.fontFamilyCode, fontSize: 12 }}
+        />
+        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button variant="primary" onClick={handleCopyPrompt}>
+            <CopyOutlined /> Copy Prompt
+          </Button>
+        </div>
+      </Modal>
 
       <StepActions>
         <Button variant="ghost" onClick={onBack}>

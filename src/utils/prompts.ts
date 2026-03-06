@@ -203,6 +203,96 @@ ${entries.join(',\n')}
 ]`;
 }
 
+/**
+ * Generates a prompt the user can copy and paste into any external AI tool
+ * (Claude, ChatGPT, Gemini, etc.) to generate their developer work log.
+ *
+ * The prompt tells the AI:
+ * - The day's schedule and blocked times (lunch, DSM, meetings — already tracked by the app)
+ * - The available time windows for developer work only
+ * - The exact output format expected by the work log textarea
+ *
+ * The user pastes the generated work log back into the app's work log field.
+ */
+export function buildExternalAiPrompt(dayConfigs: DayConfig[]): string {
+  const sections: string[] = [];
+
+  sections.push(
+    `You are helping me create a developer work log for Jira Tempo time tracking.
+
+I will describe what I worked on. You will write a formatted work log covering ONLY my developer work time — do NOT include lunch, standup, or any meetings listed below (those are tracked separately by my app).`,
+  );
+
+  for (let i = 0; i < dayConfigs.length; i++) {
+    const d = dayConfigs[i];
+    const label =
+      dayConfigs.length === 1 ? 'MY SCHEDULE' : `DAY ${i + 1} — ${d.date || '(date not set)'}`;
+    const windows = computeAvailableWindows(d);
+    const hasDsm = d.dsmTicket.trim() !== '';
+    const hasDate = d.date.trim() !== '';
+
+    let block = `## ${label}\n`;
+    if (hasDate) block += `Date: ${d.date}\n`;
+    block += `Work hours: ${d.startTime} – ${d.endTime}\n`;
+    block += `\nBlocked (DO NOT include in output — tracked separately):\n`;
+    block += `- Lunch: ${d.lunchStart} – ${d.lunchEnd}\n`;
+
+    if (hasDsm) {
+      block += `- Daily standup: ${d.dsmStart} – ${d.dsmEnd} (ticket ${d.dsmTicket})\n`;
+    }
+
+    for (const m of d.meetings) {
+      if (m.startTime && m.endTime && m.jiraId.trim()) {
+        const desc = m.description ? `${m.description} ` : '';
+        block += `- ${desc}${m.startTime} – ${m.endTime} (ticket ${m.jiraId})\n`;
+      }
+    }
+
+    block += `\nAvailable time for developer work:\n`;
+    if (windows.length === 0) {
+      block += `- (no available windows — all time is blocked)\n`;
+    } else {
+      for (const w of windows) {
+        block += `- ${w.start} – ${w.end} (${formatDuration(w.mins)})\n`;
+      }
+    }
+
+    block += `\n### What I worked on${hasDate ? ` on ${d.date}` : ''}:\n`;
+    block += d.workLog.trim()
+      ? d.workLog.trim()
+      : `[Describe your work here — what features, bugs, reviews, or tasks you did, and which Jira tickets (e.g. PROJ-123)]`;
+
+    sections.push(block);
+  }
+
+  sections.push(
+    `## OUTPUT FORMAT
+
+Write one line per work block, covering all available time windows completely. No gaps.
+
+Format:
+HH:MM – HH:MM: Short description [TICKET-ID]
+
+Example:
+09:00 – 09:30: Code review for authentication PR — feedback on token refresh logic [CREW-252]
+09:45 – 11:30: Implemented batch scheduling service — created BatchJob entity and scheduler cron [CREW-252]
+11:30 – 12:30: Fixed database migration failures — resolved FK constraint on crew_assignment table [CREW-464]
+13:30 – 15:00: Built crew assignment REST API — POST /api/crew/assign endpoint with validation [CREW-464]
+15:00 – 17:00: Resolved session timeout bug in middleware — updated token refresh logic [CREW-917]
+17:00 – 18:00: Wrote unit tests for auth middleware edge cases [CREW-917]
+
+Rules:
+- Cover every available window completely — no time gaps
+- Each block must start exactly where the previous one ends
+- Do NOT include lunch, standup, or meetings listed above
+- Use realistic, specific descriptions (mention files, functions, APIs, modules)
+- Ticket IDs in uppercase (PROJ-123 format)
+- Times in 24-hour HH:MM format`,
+  );
+
+  return sections.join('\n\n---\n\n');
+}
+
 export function buildDailyPrompt(dayConfigs: DayConfig[], additionalContext?: string): string {
   const contextBlock = additionalContext?.trim()
     ? `\n\nADDITIONAL TASKS (MUST be included as separate worklog entries — meetings, ceremonies, or tasks not in the log above. Use the ticket ID specified for each. These take priority):\n${additionalContext.trim()}`

@@ -4,14 +4,16 @@ import type { ReactNode } from 'react';
 interface CardProps {
   title?: string;
   titleAs?: 'h2' | 'h3' | 'div';
+  extra?: ReactNode;
   children: ReactNode;
   className?: string;
   animationDelay?: number;
 }
 
-export function Card({ title, children, className, animationDelay }: CardProps) {
+export function Card({ title, extra, children, className, animationDelay }: CardProps) {
   return (
     <AntCard
+      extra={extra}
       title={
         title ? (
           <span
