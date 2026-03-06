@@ -7,7 +7,7 @@ const sharedTokens = {
   colorWarning: '#f59e0b',
   colorInfo: '#38bdf8',
 
-  fontFamily: "'Syne', ui-sans-serif, system-ui, -apple-system, sans-serif",
+  fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
   fontFamilyCode: "'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace",
   fontSize: 13,
 
