@@ -40,6 +40,17 @@
   animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Native date/time picker icon visibility ── */
+:root[data-theme='dark'] input[type='date'],
+:root[data-theme='dark'] input[type='time'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] input[type='date'],
+:root[data-theme='light'] input[type='time'] {
+  color-scheme: light;
+}
+
 /* ── Reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
   *,

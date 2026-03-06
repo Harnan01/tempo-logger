@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ConfigProvider, App as AntApp } from 'antd';
 import '@/styles/global.css';
 import type { InputMode, ParsedCommit, DayConfig } from '@/types';
@@ -39,6 +39,10 @@ export function createDefaultDay(date: string): DayConfig {
 
 export default function App() {
   const { mode, toggleTheme, themeConfig } = useTheme();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   return (
     <ConfigProvider theme={themeConfig}>
