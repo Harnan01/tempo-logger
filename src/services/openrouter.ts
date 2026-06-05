@@ -1,32 +1,36 @@
-import type { WorklogEntry } from '@/types';
+import type { OpenRouterResponse, WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'gemini-2.0-flash';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'llama-3.3-70b-versatile';
 
 export async function generateWorklogs(
   apiKey: string,
   prompt: string,
   model: string = DEFAULT_MODEL,
 ): Promise<WorklogEntry[]> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  const response = await fetch(url, {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 4096 },
+      model,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
     }),
   });
 
-  const data = await response.json();
+  const data: OpenRouterResponse = await response.json();
 
   if (!response.ok) {
-    const msg = data?.error?.message || `Gemini API error ${response.status}`;
+    const msg =
+      (data as unknown as { error?: { message?: string } }).error?.message ||
+      `Groq API error ${response.status}`;
     throw new ApiError(msg);
   }
 
-  const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const text = data.choices?.[0]?.message?.content || '';
   const clean = text.replace(/```json|```/g, '').trim();
 
   try {

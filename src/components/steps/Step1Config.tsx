@@ -26,14 +26,14 @@ export function Step1Config({
     <div>
       <Card title="API Credentials">
         <FormField
-          label="GEMINI API KEY"
-          hint="aistudio.google.com/apikey -> Create API Key (free)"
+          label="GROQ API KEY"
+          hint="console.groq.com/keys -> Create API Key (free)"
           error={fieldErrors.openrouterKey}
         >
           {({ id }) => (
             <Input.Password
               id={id}
-              placeholder="AIza..."
+              placeholder="gsk_..."
               value={credentials.openrouterKey}
               onChange={(e) => updateField('openrouterKey', e.target.value)}
               onBlur={() => touchField('openrouterKey')}
@@ -126,7 +126,7 @@ export function Step1Config({
 
       <NoteBox>
         Credentials are saved in your browser's localStorage and auto-filled on next visit. Nothing
-        is sent anywhere except directly to Google Gemini, Jira, and Tempo APIs.
+        is sent anywhere except directly to Groq, Jira, and Tempo APIs.
       </NoteBox>
 
       <StepActions>
