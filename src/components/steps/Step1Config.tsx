@@ -26,14 +26,14 @@ export function Step1Config({
     <div>
       <Card title="API Credentials">
         <FormField
-          label="OPENROUTER API KEY"
-          hint="openrouter.ai/keys -> Create Key"
+          label="GEMINI API KEY"
+          hint="aistudio.google.com/apikey -> Create API Key (free)"
           error={fieldErrors.openrouterKey}
         >
           {({ id }) => (
             <Input.Password
               id={id}
-              placeholder="sk-or-v1-..."
+              placeholder="AIza..."
               value={credentials.openrouterKey}
               onChange={(e) => updateField('openrouterKey', e.target.value)}
               onBlur={() => touchField('openrouterKey')}
@@ -126,7 +126,7 @@ export function Step1Config({
 
       <NoteBox>
         Credentials are saved in your browser's localStorage and auto-filled on next visit. Nothing
-        is sent anywhere except directly to OpenRouter, Jira, and Tempo APIs.
+        is sent anywhere except directly to Google Gemini, Jira, and Tempo APIs.
       </NoteBox>
 
       <StepActions>

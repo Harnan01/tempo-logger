@@ -1,34 +1,32 @@
-import type { OpenRouterResponse, WorklogEntry } from '@/types';
+import type { WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'gemini-2.5-flash-preview-05-20';
 
 export async function generateWorklogs(
   apiKey: string,
   prompt: string,
   model: string = DEFAULT_MODEL,
 ): Promise<WorklogEntry[]> {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Tempo AutoLogger',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4096 },
     }),
   });
 
-  const data: OpenRouterResponse = await response.json();
-  if (data.error) {
-    throw new ApiError(data.error.message || JSON.stringify(data.error));
+  const data = await response.json();
+
+  if (!response.ok) {
+    const msg = data?.error?.message || `Gemini API error ${response.status}`;
+    throw new ApiError(msg);
   }
 
-  const text = data.choices?.[0]?.message?.content || '';
+  const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   const clean = text.replace(/```json|```/g, '').trim();
 
   try {
