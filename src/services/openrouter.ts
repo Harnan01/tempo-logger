@@ -1,7 +1,7 @@
 import type { WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'gemini-2.5-flash-preview-05-20';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'gemini-2.0-flash';
 
 export async function generateWorklogs(
   apiKey: string,
