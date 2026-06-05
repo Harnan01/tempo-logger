@@ -1,7 +1,7 @@
 import type { OpenRouterResponse, WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'google/gemini-2.0-flash';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'google/gemini-2.5-flash';
 
 export async function generateWorklogs(
   apiKey: string,
