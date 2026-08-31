@@ -11,8 +11,8 @@ export function validateCredentials(creds: Credentials): FieldErrors {
 
   if (!creds.openrouterKey.trim()) {
     errors.openrouterKey = 'Required';
-  } else if (!creds.openrouterKey.startsWith('sk-or-')) {
-    errors.openrouterKey = 'Should start with sk-or-';
+  } else if (!creds.openrouterKey.startsWith('gsk_')) {
+    errors.openrouterKey = 'Should start with gsk_';
   }
 
   if (!creds.tempoToken.trim()) {
