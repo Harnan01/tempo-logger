@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  http.post('https://openrouter.ai/api/v1/chat/completions', () => {
+  http.post('https://api.groq.com/openai/v1/chat/completions', () => {
     return HttpResponse.json({
       choices: [
         {

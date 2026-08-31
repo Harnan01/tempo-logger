@@ -14,8 +14,8 @@ describe('generateWorklogs', () => {
 
   it('throws when API returns error', async () => {
     server.use(
-      http.post('https://openrouter.ai/api/v1/chat/completions', () => {
-        return HttpResponse.json({ error: { message: 'Invalid API key' } });
+      http.post('https://api.groq.com/openai/v1/chat/completions', () => {
+        return HttpResponse.json({ error: { message: 'Invalid API key' } }, { status: 401 });
       }),
     );
 
@@ -24,7 +24,7 @@ describe('generateWorklogs', () => {
 
   it('handles markdown fences in response', async () => {
     server.use(
-      http.post('https://openrouter.ai/api/v1/chat/completions', () => {
+      http.post('https://api.groq.com/openai/v1/chat/completions', () => {
         return HttpResponse.json({
           choices: [
             {
@@ -45,7 +45,7 @@ describe('generateWorklogs', () => {
 
   it('throws on invalid JSON in AI response', async () => {
     server.use(
-      http.post('https://openrouter.ai/api/v1/chat/completions', () => {
+      http.post('https://api.groq.com/openai/v1/chat/completions', () => {
         return HttpResponse.json({
           choices: [{ message: { content: 'not valid json at all' } }],
         });
