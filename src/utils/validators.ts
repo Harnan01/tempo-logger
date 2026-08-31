@@ -1,7 +1,16 @@
 import type { Credentials } from '@/types';
 
+const REQUIRED_CREDENTIAL_FIELDS: (keyof Credentials)[] = [
+  'openrouterKey',
+  'tempoToken',
+  'accountId',
+  'jiraDomain',
+  'jiraEmail',
+  'jiraToken',
+];
+
 export function areCredentialsComplete(creds: Credentials): boolean {
-  return Object.values(creds).every((v) => v.trim().length > 0);
+  return REQUIRED_CREDENTIAL_FIELDS.every((field) => (creds[field] ?? '').trim().length > 0);
 }
 
 export type FieldErrors = Partial<Record<keyof Credentials, string>>;

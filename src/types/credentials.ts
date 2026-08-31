@@ -5,4 +5,6 @@ export interface Credentials {
   jiraDomain: string;
   jiraEmail: string;
   jiraToken: string;
+  /** Groq model ID. Empty string means use the service's default. */
+  model?: string;
 }

@@ -16,6 +16,7 @@ const EMPTY_CREDENTIALS: Credentials = {
   jiraDomain: '',
   jiraEmail: '',
   jiraToken: '',
+  model: '',
 };
 
 function loadCredentials(): Credentials {

@@ -42,6 +42,20 @@ export function Step1Config({
         </FormField>
 
         <FormField
+          label="AI MODEL"
+          hint="Groq model ID (optional) — must be enabled for your Groq project, check console.groq.com/playground. Leave blank for default."
+        >
+          {({ id }) => (
+            <Input
+              id={id}
+              placeholder="openai/gpt-oss-20b"
+              value={credentials.model ?? ''}
+              onChange={(e) => updateField('model', e.target.value)}
+            />
+          )}
+        </FormField>
+
+        <FormField
           label="TEMPO API TOKEN"
           hint="Tempo -> Settings -> API Integration -> New Token"
           error={fieldErrors.tempoToken}

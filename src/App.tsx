@@ -127,7 +127,11 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
         );
         prompt = buildGitCommitPrompt(condensed, dayConfigs, additionalContext);
       }
-      const result = await generateWorklogs(credentials.openrouterKey, prompt);
+      const result = await generateWorklogs(
+        credentials.openrouterKey,
+        prompt,
+        credentials.model || undefined,
+      );
       setEntries(result);
       goTo(3);
     } catch (err) {
