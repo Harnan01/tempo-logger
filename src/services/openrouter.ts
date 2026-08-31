@@ -1,7 +1,7 @@
 import type { OpenRouterResponse, WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'llama-3.1-8b-instant';
 
 export async function generateWorklogs(
   apiKey: string,
