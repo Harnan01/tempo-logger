@@ -1,7 +1,7 @@
 import type { OpenRouterResponse, WorklogEntry } from '@/types';
 import { ApiError } from './api-client';
 
-const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'groq/compound-mini';
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'openai/gpt-oss-20b';
 
 export async function generateWorklogs(
   apiKey: string,
