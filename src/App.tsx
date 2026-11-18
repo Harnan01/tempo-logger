@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ConfigProvider, App as AntApp } from 'antd';
 import '@/styles/global.css';
-import type { InputMode, ParsedCommit, DayConfig } from '@/types';
+import type { DayConfig } from '@/types';
 import type { StepNumber } from '@/hooks/useWorkflow';
 import { useCredentials } from '@/hooks/useCredentials';
 import { useEntries } from '@/hooks/useEntries';
@@ -15,11 +15,9 @@ import { Step3Review } from '@/components/steps/Step3Review';
 import { Step4Results } from '@/components/steps/Step4Results';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NoteBox } from '@/components/shared';
-import { generateWorklogs } from '@/services/openrouter';
 import { resolveIssueIds } from '@/services/jira';
 import { submitWorklog } from '@/services/tempo';
-import { parseCommits, groupByTicket, condenseGitLog } from '@/utils/parseCommits';
-import { buildDailyPrompt, buildGitCommitPrompt } from '@/utils/prompts';
+import { buildEntriesFromDays } from '@/utils/buildEntries';
 import { getTodayISO } from '@/utils/formatTime';
 
 export function createDefaultDay(date: string): DayConfig {
@@ -78,19 +76,11 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
   const { step, goTo, loading, loadingMsg, startLoading, stopLoading, error, setErrorMsg } =
     useWorkflow(isComplete ? 2 : 1);
 
-  const [commitLog, setCommitLog] = useState('');
   const [dayConfigs, setDayConfigs] = useState<DayConfig[]>([createDefaultDay('')]);
-  const [inputMode, setInputMode] = useState<InputMode>('daily');
-  const [additionalContext, setAdditionalContext] = useState('');
-  const [parsedPreview, setParsedPreview] = useState<ParsedCommit[]>([]);
 
   const today = getTodayISO();
   const allDaysHaveDates = dayConfigs.every((d) => d.date.trim() !== '');
-  const canProceedStep2 =
-    allDaysHaveDates &&
-    (inputMode === 'daily'
-      ? dayConfigs.every((d) => d.workLog.trim().length > 0)
-      : commitLog.trim().length > 0);
+  const canProceedStep2 = allDaysHaveDates && dayConfigs.every((d) => d.workLog.trim().length > 0);
 
   const shortcuts = useMemo(
     () => [
@@ -105,40 +95,15 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
   );
   useKeyboardShortcuts(shortcuts);
 
-  const handlePreviewParse = useCallback((log: string) => {
-    setCommitLog(log);
-    setParsedPreview(parseCommits(log).slice(0, 8));
-  }, []);
-
-  const handleGenerate = async () => {
-    startLoading('Sending to AI...');
-    try {
-      let prompt: string;
-      if (inputMode === 'daily') {
-        prompt = buildDailyPrompt(dayConfigs, additionalContext);
-      } else {
-        const condensed = condenseGitLog(commitLog);
-        const commits = parseCommits(commitLog);
-        const ticketCount = Object.keys(groupByTicket(commits)).length;
-        startLoading(
-          ticketCount > 0
-            ? `Found ${ticketCount} tickets. Analyzing git log and generating worklogs...`
-            : 'Analyzing git log — AI will extract ticket IDs from commits and diffs...',
-        );
-        prompt = buildGitCommitPrompt(condensed, dayConfigs, additionalContext);
-      }
-      const result = await generateWorklogs(
-        credentials.openrouterKey,
-        prompt,
-        credentials.model || undefined,
-      );
-      setEntries(result);
-      goTo(3);
-    } catch (err) {
-      setErrorMsg('Error: ' + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      stopLoading();
+  const handleBuildEntries = () => {
+    const { entries: built, errors } = buildEntriesFromDays(dayConfigs);
+    if (errors.length > 0) {
+      setErrorMsg(`Fix these Work Log lines, then build again:\n${errors.join('\n')}`);
+      message.error('Some Work Log lines could not be read — see the details at the top.');
+      return;
     }
+    setEntries(built);
+    goTo(3);
   };
 
   const handleSubmit = async () => {
@@ -189,11 +154,8 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
   const handleReset = () => {
     goTo(1);
     setEntries([]);
-    setCommitLog('');
     setSubmitResults([]);
     setDayConfigs([createDefaultDay('')]);
-    setAdditionalContext('');
-    setParsedPreview([]);
   };
 
   const handleStepClick = useCallback(
@@ -213,7 +175,11 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
         themeMode={themeMode}
         onThemeToggle={onThemeToggle}
       >
-        {error && <NoteBox variant="error">{error}</NoteBox>}
+        {error && (
+          <NoteBox variant="error">
+            <span style={{ whiteSpace: 'pre-line' }}>{error}</span>
+          </NoteBox>
+        )}
 
         {step === 1 && (
           <Step1Config
@@ -229,21 +195,12 @@ function AppInner({ themeMode, onThemeToggle }: AppInnerProps) {
 
         {step === 2 && (
           <Step2Input
-            commitLog={commitLog}
-            inputMode={inputMode}
-            onInputModeChange={setInputMode}
             dayConfigs={dayConfigs}
             onDayConfigsChange={setDayConfigs}
-            additionalContext={additionalContext}
-            onAdditionalContextChange={setAdditionalContext}
             today={today}
-            loading={loading}
-            loadingMsg={loadingMsg}
-            onGenerate={handleGenerate}
+            onBuild={handleBuildEntries}
             onBack={() => goTo(1)}
             canProceed={canProceedStep2}
-            parsedPreview={parsedPreview}
-            onPreviewParse={handlePreviewParse}
           />
         )}
 

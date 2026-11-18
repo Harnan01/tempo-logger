@@ -14,13 +14,6 @@ export interface SubmitResult {
   msg: string;
 }
 
-export interface ParsedCommit {
-  line: string;
-  tickets: string[];
-}
-
-export type InputMode = 'daily' | 'git';
-
 export interface Meeting {
   description: string; // e.g. "Sprint planning", "Retro"
   startTime: string; // HH:MM (e.g. "10:00")
@@ -38,5 +31,5 @@ export interface DayConfig {
   dsmEnd: string; // HH:MM (e.g. "09:45")
   dsmTicket: string; // Jira ticket ID (e.g. "CREW-100")
   meetings: Meeting[]; // Optional additional meetings/ceremonies
-  workLog: string; // Per-day work log (used in daily mode)
+  workLog: string; // One line per work block: "HH:MM – HH:MM: description [TICKET-123]"
 }

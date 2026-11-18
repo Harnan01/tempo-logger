@@ -15,8 +15,8 @@
 ## Project Structure
 
 - `src/types/` - TypeScript interfaces (Credentials, WorklogEntry, SubmitResult, API types)
-- `src/utils/` - Pure functions (parseCommits, groupByTicket, secToHuman, validators, prompts)
-- `src/services/` - API clients (openrouter.ts, jira.ts, tempo.ts, api-client.ts)
+- `src/utils/` - Pure functions (buildEntries, secToHuman, validators, prompts)
+- `src/services/` - API clients (jira.ts, tempo.ts, api-client.ts)
 - `src/hooks/` - React hooks (useCredentials, useEntries, useWorkflow, useTheme)
 - `src/theme/` - Ant Design theme configs (antdTheme.ts with dark/light themes)
 - `src/components/shared/` - Ant Design wrapper components (Button, Card, FormField, NoteBox, StatCard, Spinner, DurationInput, StepActions)

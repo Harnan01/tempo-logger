@@ -1,12 +1,14 @@
 # Tempo AutoLogger
 
-Convert git commits and daily work logs into Jira Tempo time entries using AI.
+Turn a daily work log into Jira Tempo time entries. No AI API is called: entries are built in the app
+from one line per work block, so a person (or Claude driving the browser) writes exactly what gets logged.
 
 ## How It Works
 
-1. **Configure** - Enter your OpenRouter, Jira, and Tempo API credentials
-2. **Input** - Paste a git log or daily work log
-3. **Review** - AI generates worklog entries; edit as needed
+1. **Configure** - Enter your Jira and Tempo API credentials
+2. **Input** - For each day, set the schedule, DSM ticket and meetings, and write the Work Log as one
+   line per block: `09:00 – 10:30: Implemented crew filter [CREW-123]`
+3. **Review** - The app builds the entries (work lines + DSM + meetings); edit as needed
 4. **Submit** - Entries are logged to Tempo via the API
 
 ## Prerequisites
@@ -28,7 +30,6 @@ Open [http://localhost:5173](http://localhost:5173).
 
 | Credential | Where to get it |
 |------------|----------------|
-| OpenRouter API Key | [openrouter.ai/keys](https://openrouter.ai/keys) - Create Key |
 | Tempo API Token | Tempo > Settings > API Integration > New Token |
 | Jira Account ID | Your Jira profile URL contains the `accountId` |
 | Jira Domain | e.g. `yourcompany.atlassian.net` |
@@ -54,9 +55,9 @@ src/
     steps/        # Step1Config, Step2Input, Step3Review, Step4Results
     shared/       # Button, Card, ErrorBox, Spinner, FormField, etc.
   hooks/          # useCredentials, useWorkflow, useEntries
-  services/       # API clients (openrouter, jira, tempo)
+  services/       # API clients (jira, tempo)
   types/          # TypeScript interfaces
-  utils/          # parseCommits, formatTime, validators, prompts
+  utils/          # buildEntries, formatTime, validators, prompts
   styles/         # CSS variables, global styles, CSS modules
   App.tsx         # Main orchestrator
   main.tsx        # React entry point

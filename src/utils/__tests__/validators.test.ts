@@ -28,7 +28,6 @@ describe('areCredentialsComplete', () => {
   it('returns true when all fields are filled', () => {
     expect(
       areCredentialsComplete({
-        openrouterKey: 'key',
         tempoToken: 'token',
         accountId: 'id',
         jiraDomain: 'domain.atlassian.net',
@@ -41,7 +40,6 @@ describe('areCredentialsComplete', () => {
   it('returns false when any field is empty', () => {
     expect(
       areCredentialsComplete({
-        openrouterKey: 'key',
         tempoToken: '',
         accountId: 'id',
         jiraDomain: 'domain.atlassian.net',

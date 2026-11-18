@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const credentialsSchema = z.object({
-  openrouterKey: z.string().min(1, 'OpenRouter API key is required'),
   tempoToken: z.string().min(1, 'Tempo token is required'),
   accountId: z.string().min(1, 'Jira account ID is required'),
   jiraDomain: z

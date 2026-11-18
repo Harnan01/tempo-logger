@@ -10,21 +10,31 @@ import type { FieldErrors } from '@/utils/validators';
 const STORAGE_KEY = 'tempo-logger-credentials';
 
 const EMPTY_CREDENTIALS: Credentials = {
-  openrouterKey: '',
   tempoToken: '',
   accountId: '',
   jiraDomain: '',
   jiraEmail: '',
   jiraToken: '',
-  model: '',
 };
+
+const CREDENTIAL_FIELDS = Object.keys(EMPTY_CREDENTIALS) as (keyof Credentials)[];
 
 function loadCredentials(): Credentials {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return EMPTY_CREDENTIALS;
-    const parsed = JSON.parse(stored) as Partial<Credentials>;
-    return { ...EMPTY_CREDENTIALS, ...parsed };
+    const parsed = JSON.parse(stored) as Record<string, unknown>;
+
+    // Keep only the current fields, so values for removed settings (e.g. the old Groq API key)
+    // are dropped from storage instead of lingering there.
+    const creds = { ...EMPTY_CREDENTIALS };
+    for (const field of CREDENTIAL_FIELDS) {
+      if (typeof parsed[field] === 'string') creds[field] = parsed[field];
+    }
+    if (Object.keys(parsed).some((key) => !(CREDENTIAL_FIELDS as string[]).includes(key))) {
+      saveCredentials(creds);
+    }
+    return creds;
   } catch {
     return EMPTY_CREDENTIALS;
   }

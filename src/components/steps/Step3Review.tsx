@@ -167,7 +167,7 @@ export function Step3Review({
 
       <StepActions>
         <Button variant="ghost" onClick={onBack}>
-          Regenerate
+          Back to input
         </Button>
         <Button
           variant="success"

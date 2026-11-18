@@ -1,14 +1,3 @@
-export interface OpenRouterResponse {
-  choices?: Array<{
-    message?: {
-      content?: string;
-    };
-  }>;
-  error?: {
-    message?: string;
-  };
-}
-
 export interface JiraIssueResponse {
   id?: string;
   errorMessages?: string[];

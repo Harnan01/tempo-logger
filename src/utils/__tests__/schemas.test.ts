@@ -3,7 +3,6 @@ import { credentialsSchema, dateRangeSchema, worklogEntrySchema } from '../schem
 
 describe('credentialsSchema', () => {
   const validCreds = {
-    openrouterKey: 'sk-or-v1-abc123',
     tempoToken: 'some-token',
     accountId: '5b10a2844c20165700ede21g',
     jiraDomain: 'myteam.atlassian.net',
@@ -13,11 +12,6 @@ describe('credentialsSchema', () => {
 
   it('accepts valid credentials', () => {
     expect(credentialsSchema.safeParse(validCreds).success).toBe(true);
-  });
-
-  it('rejects empty openrouterKey', () => {
-    const result = credentialsSchema.safeParse({ ...validCreds, openrouterKey: '' });
-    expect(result.success).toBe(false);
   });
 
   it('rejects invalid email', () => {

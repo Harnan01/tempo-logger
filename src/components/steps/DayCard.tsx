@@ -1,11 +1,11 @@
 import { Row, Col, Input, Card as AntCard, Flex, theme } from 'antd';
-import type { InputMode, DayConfig, Meeting } from '@/types';
+import type { DayConfig, Meeting } from '@/types';
+import { WORK_LOG_LINE_FORMAT } from '@/utils/buildEntries';
 import { FormField, Button } from '@/components/shared';
 
 interface DayCardProps {
   day: DayConfig;
   index: number;
-  inputMode: InputMode;
   today: string;
   canRemove: boolean;
   onUpdate: (field: keyof DayConfig, value: string) => void;
@@ -16,7 +16,6 @@ interface DayCardProps {
 export function DayCard({
   day,
   index,
-  inputMode,
   today,
   canRemove,
   onUpdate,
@@ -283,21 +282,23 @@ export function DayCard({
         + Add Meeting
       </Button>
 
-      {inputMode === 'daily' && (
-        <div style={{ marginTop: 12 }}>
-          <FormField label="WORK LOG" noMargin>
-            {({ id }) => (
-              <Input.TextArea
-                id={id}
-                placeholder={`9:00 AM - 10:45 AM: Database Layer\n* Created BatchMapping entity CREW-1026\n* Extended Batch entity with validity fields\n\n11:00 AM - 1:00 PM: Service Layer CREW-1027\n* Implemented assignCrewToBatch() logic`}
-                value={day.workLog}
-                onChange={(e) => onUpdate('workLog', e.target.value)}
-                autoSize={{ minRows: 5 }}
-              />
-            )}
-          </FormField>
-        </div>
-      )}
+      <div style={{ marginTop: 12 }}>
+        <FormField
+          label="WORK LOG"
+          hint={`One line per work block: ${WORK_LOG_LINE_FORMAT}. DSM and meetings above are added automatically.`}
+          noMargin
+        >
+          {({ id }) => (
+            <Input.TextArea
+              id={id}
+              placeholder={`09:00 – 10:30: Created BatchMapping entity [CREW-1026]\n10:45 – 12:30: Extended Batch entity with validity fields [CREW-1026]\n13:30 – 18:00: Implemented assignCrewToBatch() logic [CREW-1027]`}
+              value={day.workLog}
+              onChange={(e) => onUpdate('workLog', e.target.value)}
+              autoSize={{ minRows: 5 }}
+            />
+          )}
+        </FormField>
+      </div>
     </AntCard>
   );
 }

@@ -26,36 +26,6 @@ export function Step1Config({
     <div>
       <Card title="API Credentials">
         <FormField
-          label="GROQ API KEY"
-          hint="console.groq.com/keys -> Create API Key (free)"
-          error={fieldErrors.openrouterKey}
-        >
-          {({ id }) => (
-            <Input.Password
-              id={id}
-              placeholder="gsk_..."
-              value={credentials.openrouterKey}
-              onChange={(e) => updateField('openrouterKey', e.target.value)}
-              onBlur={() => touchField('openrouterKey')}
-            />
-          )}
-        </FormField>
-
-        <FormField
-          label="AI MODEL"
-          hint="Groq model ID (optional) — must be enabled for your Groq project, check console.groq.com/playground. Leave blank for default."
-        >
-          {({ id }) => (
-            <Input
-              id={id}
-              placeholder="openai/gpt-oss-20b"
-              value={credentials.model ?? ''}
-              onChange={(e) => updateField('model', e.target.value)}
-            />
-          )}
-        </FormField>
-
-        <FormField
           label="TEMPO API TOKEN"
           hint="Tempo -> Settings -> API Integration -> New Token"
           error={fieldErrors.tempoToken}
@@ -140,7 +110,7 @@ export function Step1Config({
 
       <NoteBox>
         Credentials are saved in your browser's localStorage and auto-filled on next visit. Nothing
-        is sent anywhere except directly to Groq, Jira, and Tempo APIs.
+        is sent anywhere except directly to the Jira and Tempo APIs.
       </NoteBox>
 
       <StepActions>

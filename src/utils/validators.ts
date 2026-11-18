@@ -1,7 +1,6 @@
 import type { Credentials } from '@/types';
 
 const REQUIRED_CREDENTIAL_FIELDS: (keyof Credentials)[] = [
-  'openrouterKey',
   'tempoToken',
   'accountId',
   'jiraDomain',
@@ -17,12 +16,6 @@ export type FieldErrors = Partial<Record<keyof Credentials, string>>;
 
 export function validateCredentials(creds: Credentials): FieldErrors {
   const errors: FieldErrors = {};
-
-  if (!creds.openrouterKey.trim()) {
-    errors.openrouterKey = 'Required';
-  } else if (!creds.openrouterKey.startsWith('gsk_')) {
-    errors.openrouterKey = 'Should start with gsk_';
-  }
 
   if (!creds.tempoToken.trim()) {
     errors.tempoToken = 'Required';

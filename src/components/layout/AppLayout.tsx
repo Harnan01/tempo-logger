@@ -8,7 +8,7 @@ const { Sider, Content } = Layout;
 
 const STEPS = [
   { title: 'Configure', description: 'API credentials' },
-  { title: 'Input', description: 'Commits & logs' },
+  { title: 'Input', description: 'Daily work log' },
   { title: 'Review', description: 'Edit entries' },
   { title: 'Results', description: 'Submit status' },
 ];
@@ -110,7 +110,7 @@ export function AppLayout({
                 marginTop: 1,
               }}
             >
-              git · AI · Tempo
+              work log · Tempo
             </div>
           </div>
         </div>
